@@ -102,7 +102,7 @@ POST 或 GET
 签名串 | sign | string | 签名串
 
 
-#### 实例代码
+#### 示例代码
 ```
 Map<String, String> params = new  TreeMap<String,String>();
 params.put("mch_id", "MCH_12345");
@@ -120,6 +120,7 @@ params.put("sign",md5(stringSignTemp)); // 计算签名
 String res = STANDARD-HTTP-POST-FORM("http://payorderurl", NormalPaymentKit.getRequestStrNoEncode(params), "utf-8");
 System.out.println("收到响应：" + res);
 ```
+<br/> <br/> 
 
 ### 异步通知
 #### 说明
@@ -139,6 +140,8 @@ POST
 商户订单号 | out_trade_no | string | 商户生成的唯一订单号
 金额 | amount | double | 下单金额
 签名串 | sign | string | 签名串
+
+<br/> <br/> 
 
 
 ### 订单查询接口
@@ -169,6 +172,8 @@ POST 或 GET
 金额 | amount | double | 下单金额
 签名串 | sign | string | 签名串
 
+<br/> <br/> <br/> 
+
 
 ### 附录
 #### 订单状态说明
@@ -179,6 +184,8 @@ paying | 准备支付
 paid ok | 成功支付
 pay error | 支付失败
 pay timeout | 超时未支付
+
+<br/> <br/>
 
 #### 签名示例
  - 生成签名串
@@ -195,6 +202,8 @@ public static String getRequestStrNoEncode(TreeMap<String,String> map) throws Un
     return sb.toString().substring(0, sb.toString().length() - 1);
 }
 ```
+<br/>
+
  - http post 示例
 ```
     public static String httpPost(String url, String req, String enc) throws Exception {
@@ -230,6 +239,8 @@ public static String getRequestStrNoEncode(TreeMap<String,String> map) throws Un
         return EntityUtils.toString(httpEntity, enc);
     }
 ```
+<br/>
+
  - http get 示例
 ```
 	public static String httpGet(String req, Map<String , String> header) throws Exception {
