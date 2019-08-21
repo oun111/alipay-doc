@@ -71,10 +71,13 @@ Step4：验证的签名通过后认可返回的内容
 ### 支付宝H5下单接口
 #### 说明
 发起支付宝H5下单时，调用此接口
+
 #### 请求地址
 生产环境：http://{服务器url}/alipay/pay
+
 #### 请求方式
 POST 或 GET
+
 #### 请求参数
 名称 | 属性 | 类型 | 必填 | 备注
 :-:|:-:|:-:|:-:|:-:
@@ -85,6 +88,8 @@ POST 或 GET
 订单金额 | total_amount | double | YES | 订单金额，单位 元
 异步通知url | notify_url | string | YES | 商户接收异步通知的url
 同步跳转url | return_url | string | YES | 商户支付完成后跳转的url  
+签名串 | sign | string |YES | 签名串
+
 #### 返回参数
 名称 | 属性 | 类型 | 备注
 :-:|:-:|:-:|:-:
@@ -92,8 +97,173 @@ POST 或 GET
 订单状态 | status | string | 订单状态
 商户订单号 | out_trade_no | string | 商户生成的唯一订单号
 商户编号 | mch_id | string | 平台为商户分配的唯一标识
-支付链接 | location | string | 平台生成的支付链接，用于调起支付宝
+支付链接 | location | string | 平台生成的支付链接，返回给前端/手机端，通过浏览器调起支付宝
 金额 | amount | double | 下单金额
+签名串 | sign | string | 签名串
 
 
+#### 实例代码
+```
+Map<String, String> params = new  TreeMap<String,String>();
+params.put("mch_id", "MCH_12345");
+params.put("out_trade_no", "100001");
+params.put("body", "货款");
+params.put("subject", "支付测试");
+params.put("total_amount", "1.0"); 
+params.put("notify_url", "http://myurl/notify");
+params.put("return_url", "http://appurl/return");
 
+String stringA = CREATE-SIGN-STRING-WITHOUT-URL-ENCODE(params); // map转为 http form 形式的 验签串
+String stringSignTemp = stringA + merchantKey; // 商户密钥附加到验签串末尾
+params.put("sign",md5(stringSignTemp)); // 计算签名
+
+String res = STANDARD-HTTP-POST-FORM("http://payorderurl", NormalPaymentKit.getRequestStrNoEncode(params), "utf-8");
+System.out.println("收到响应：" + res);
+```
+
+### 异步通知
+#### 说明
+支付成功后或失败，平台通过商户提供的异步通知地址发送此通知
+
+#### 策略
+此通知只发送一次，商户处理成功后请返回 'success'
+
+#### 发送方式
+POST 
+
+#### 通知内容
+名称 | 属性 | 类型 |  备注
+:-:|:-:|:-:|:-:
+平台流水号 | trade_no | string | 平台生成的订单流水号
+订单状态 | status | string | 订单状态
+商户订单号 | out_trade_no | string | 商户生成的唯一订单号
+金额 | amount | double | 下单金额
+签名串 | sign | string | 签名串
+
+
+### 订单查询接口
+#### 说明
+查询商户订单情况
+
+#### 请求地址
+生产环境：http://{服务器url}/alipay/query
+
+#### 请求方式
+POST 或 GET
+
+#### 请求参数
+名称 | 属性 | 类型 | 必填 | 备注
+:-:|:-:|:-:|:-:|:-:
+商户编号 | mch_id | string | YES |平台为商户分配的唯一标识
+商户订单号 | out_trade_no | string | YES | 商户生成的唯一订单号
+签名串 | sign | string | YES |签名串
+
+
+#### 返回参数
+名称 | 属性 | 类型 | 备注
+:-:|:-:|:-:|:-:
+平台流水号 | trade_no | string | 平台生成的订单流水号
+订单状态 | status | string | 订单状态
+商户订单号 | out_trade_no | string | 商户生成的唯一订单号
+订单生成时间 | create_time | long | 订单生成时间
+金额 | amount | double | 下单金额
+签名串 | sign | string | 签名串
+
+
+### 附录
+#### 订单状态说明
+状态名称 | 说明
+:-:|:-:
+unpay | 未支付
+paying | 准备支付
+paid ok | 成功支付
+pay error | 支付失败
+pay timeout | 超时未支付
+
+#### 签名示例
+ - 生成签名串
+```
+public static String getRequestStrNoEncode(TreeMap<String,String> map) throws UnsupportedEncodingException{
+ StringBuffer sb = new StringBuffer("");
+    String val = "";
+    for (String key : map.keySet()) {
+        val = map.get(key);
+        if (Tool.isNotNullOrEmpty(val)) {
+            sb.append(key).append("=").append(val).append("&");
+        }
+    }
+    return sb.toString().substring(0, sb.toString().length() - 1);
+}
+```
+ - http post 示例
+```
+    public static String httpPost(String url, String req, String enc) throws Exception {
+
+	    BasicHttpClientConnectionManager connManager = 
+	    	new BasicHttpClientConnectionManager(
+                RegistryBuilder.<ConnectionSocketFactory>create()
+                        .register("http", PlainConnectionSocketFactory.getSocketFactory())
+                        .register("https", SSLConnectionSocketFactory.getSocketFactory())
+                        .build(),
+                null,
+                null,
+                null
+        );
+    
+		CloseableHttpClient httpClient = HttpClientBuilder.create()
+                .setConnectionManager(connManager)
+                .build();
+        
+        HttpPost httpPost = new HttpPost(url);
+        int socktimeoutms = 1000000;
+
+        RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(socktimeoutms).setConnectTimeout(socktimeoutms).build();
+        httpPost.setConfig(requestConfig);
+
+        StringEntity postEntity = new StringEntity(req, enc);
+        httpPost.addHeader("Content-Type", "application/x-www-form-urlencoded");
+        httpPost.setEntity(postEntity);
+
+        HttpResponse httpResponse = httpClient.execute(httpPost);
+        HttpEntity httpEntity = httpResponse.getEntity();
+
+        return EntityUtils.toString(httpEntity, enc);
+    }
+```
+ - http get 示例
+```
+	public static String httpGet(String req, Map<String , String> header) throws Exception {
+    	SSLContextBuilder builder = new SSLContextBuilder();
+    	 builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+    	 SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(builder.build(), NoopHostnameVerifier.INSTANCE);
+    	 Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
+    	            .register("http", new PlainConnectionSocketFactory())
+    	            .register("https", sslConnectionSocketFactory)
+    	            .build();
+
+    	 PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(registry);
+    	 cm.setMaxTotal(100);
+		CloseableHttpClient httpClient = HttpClientBuilder.create()
+	            .setSSLSocketFactory(sslConnectionSocketFactory)
+	            .setConnectionManager(cm)
+	            .build();
+
+		HttpGet httpGet = new HttpGet(req);
+        int socktimeoutms = 1000000;
+
+        RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(socktimeoutms).setConnectTimeout(socktimeoutms).build();
+        httpGet.setConfig(requestConfig);
+
+        httpGet.addHeader("Content-Type", "application/x-www-form-urlencoded");
+        if (header!=null) {
+            for (String key : header.keySet()){
+            	httpGet.setHeader(key , header.get(key));
+            }
+        }
+
+        HttpResponse httpResponse = httpClient.execute(httpGet);
+        HttpEntity httpEntity = httpResponse.getEntity();
+
+        return EntityUtils.toString(httpEntity, "UTF-8");
+    }
+```
