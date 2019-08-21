@@ -46,25 +46,25 @@ body=货款&mch_id=MCH_f2ea34fd2&notify_url=http://merchant_notify_url&out_trade
 
 ### 商户端加解密步骤详解
 #### 请求参数处理过程
-Step1：生成基本业务参数，如下单接口中的基本业务参数值
-Step2：业务请求参数按参数名排序（按照字母顺序排序，从a-z）
+Step1：生成基本业务参数，如下单接口中的基本业务参数值  
+Step2：业务请求参数按参数名排序（按照字母顺序排序，从a-z）  
 ```
 body=货款&mch_id=MCH_f2ea34fd2&notify_url=http://merchant_notify_url&out_trade_no=2000-100001&return_url=user_return_url&subject=支付测试&total_amount=100
 ```  
-Step3：调用通用MD5签名方法计算出sign值
+Step3：调用通用MD5签名方法计算出sign值  
 ```
 body=货款&mch_id=MCH_f2ea34fd2&notify_url=http://merchant_notify_url&out_trade_no=2000-100001&return_url=user_return_url&subject=支付测试&total_amount=100&sign=71F46542493B3D8C2A627430FD04C9F9
 ```  
-Step4：向API接口发送HTTP请求，POST和GET均可
+Step4：向API接口发送HTTP请求，POST和GET均可  
 
 #### 同步/异步响应结果处理过程
-Step1：接收接口处理结果（JSON格式），如下：
+Step1：接收接口处理结果（JSON格式），如下：  
 ```
 {"trade_no":"alp_0000000000000000001","status":"paying","out_trade_no":"2000-100001","mch_id":"MCH_f2ea34fd2","location":"https://openapi.alipay.com/gateway.do?biz_content=%7B%22total_amount%22%3A10.0%2C%22timeout_express%22%3A%22240m%22%2C%22subject%22%22product_code%22%3A%22QUICK_WAP_PAY%22%2C%22out_trade_no%22%3A%2000-100001%22%2C%22body%22%3A%22%E8%B4%A7%E6%AC%BE%22%7D&charset=utf-8&format=JSON&method=alipay.trade.wap.pay&notify_url=http%3A%2F%2F1.1.1.1%3A1111%2Falipay%2Fnotify&return_url=http%3A%2F%2F1.1.1.1%3A4230%2F&sign=0A32U%2FrGFy%2BzGJqnbCUyCnrgIAZq96w4EZ2s41ffalVRIM32IrfGiUP6rOG2ylcptSCf4TaiF5Hh%2FmT1g7uiU6%2BCcC4Cjpg46jdR4e3RYaDmiAthDOZg80fIKcYn61QM5EgUYwVmQv5WdaCJXObyLm3TSD1h0n78mtSfAFGT2Ezg6A5JVg5MOkLu4OREXCnT4pW20zxQc86DJ7WEEDfD%2FO0%2BetMT9d8RT1Ly9V7oUEaddd9PqzEJGwJZ1EPWEMwJvRkzFgenE7eZFIRAY7HmSH%2BzHe64%2FXPdnKF8%2But4P9wrNF5TOcvtxzdmsg%3D%3D&sign_type=RSA2&timestamp=2019-08-20+12%3A37%3A01&version=1.0","amount":10.00}
 ```
-Step2：将除了sign之外的参数按键排序，并将参数值拼成字符串signData
-Step3：用MD5验证签名是否正确
-Step4：验证的签名通过后认可返回的内容
+Step2：将除了sign之外的参数按键排序，并将参数值拼成字符串signData  
+Step3：用MD5验证签名是否正确   
+Step4：验证的签名通过后认可返回的内容  
 <br/> <br/> <br/> 
 
 ## 接口简介
